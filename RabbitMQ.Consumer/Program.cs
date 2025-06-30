@@ -14,16 +14,18 @@ using IConnection connection=factory.CreateConnection();
 using IModel channel=connection.CreateModel();
 
 //Queue oluşturma
-channel.QueueDeclare(queue: "example", exclusive: false);
+channel.QueueDeclare(queue: "example", exclusive: false,durable:true);
 
 //Queueden mesaj okuma
 EventingBasicConsumer consumer = new(channel);
 channel.BasicConsume(queue: "example",false,consumer);
+channel.BasicQos(0, 1, false);
 consumer.Received += (sender, e) =>
 {
     //Kuyruğa gelen mesajın işlendiği yer.
     //e.body kuyruktaki mesajın verisini getirecektir.
     //e.body.span veya e.body.toarray() kuyruktaki mesajın byte verisini çeker.
     Console.WriteLine(Encoding.UTF8.GetString(e.Body.Span));
+    channel.BasicAck(deliveryTag: e.DeliveryTag,multiple:false);
 };
 Console.ReadLine();
